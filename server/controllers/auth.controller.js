@@ -3,7 +3,7 @@ const {
   createRefreshToken,
 } = require("../config/createToken");
 const createCookie = require("../config/createCookie");
-const User = require("../models/user.model");
+//import any user model is needed.
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const {
@@ -16,13 +16,13 @@ const login = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    let user = await User.findOne({ email });
+    //find the user
 
     if (!user) {
       return next(new CustomError("Check Credentials.", 400));
     }
 
-    const passCompare = await user.comparePassword(password);
+    let passCompare; //compare password
 
     if (!passCompare) {
       return next(new CustomError("Invalid Credentials.", 401));
@@ -37,12 +37,11 @@ const login = async (req, res, next) => {
 
     user.refreshToken = refreshToken;
 
-    await user.save();
+    //save the user to the db
 
-    user = user.toJSON();
-    delete user.refreshToken;
-    delete user.password;
-    delete user.__v;
+    // user = user.toJSON();
+    // delete user.refreshToken;
+    // delete user.password;
 
     return res
       .status(200)
@@ -60,7 +59,7 @@ const signup = async (req, res, next) => {
     if (password !== confirmPassword) {
       return next(new CustomError("Invalid email or password.", 400));
     }
-    const user = await User.findOne({ email });
+    let user; //find the user in the db.
 
     if (user) {
       return next(new CustomError("User already exists.", 400));
@@ -68,11 +67,9 @@ const signup = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    let newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
+    let newUser = {
+      /*create the new user*/
+    };
 
     const payload = { id: newUser._id, email: newUser.email };
 
@@ -80,7 +77,6 @@ const signup = async (req, res, next) => {
 
     newUser = newUser.toJSON();
     delete newUser.password;
-    delete newUser.__v;
 
     newUser = { ...newUser, accessToken };
 
@@ -102,7 +98,7 @@ const refresh = async (req, res, next) => {
     }
 
     const refreshToken = cookies[APP_NAME];
-    const user = await User.findOne({ refreshToken });
+    let user; //find the user by their current refresh token.
 
     if (!user) {
       return next(new CustomError("Forbidden.", 403));

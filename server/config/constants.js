@@ -6,7 +6,7 @@ const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 const ACCESS_EXPIRES_IN = process.env.ACCESS_EXPIRES_IN || "1h";
 const REFRESH_EXPIRES_IN = process.env.REFRESH_EXPIRES_IN || "10d";
-const APP_NAME = process.env.APP_NAME || "Mern Starter App";
+const APP_NAME = process.env.APP_NAME || "Plaid Integration";
 
 module.exports = {
   PORT,

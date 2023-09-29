@@ -15,7 +15,7 @@ const corsOptions = require("./config/corsOptions");
 const app = express();
 
 //DB connection
-connectDB();
+// connectDB(); //commented out until firestore is wired up.
 
 //Middlewares
 app.use(cors(corsOptions));
