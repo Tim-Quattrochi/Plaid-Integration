@@ -1,0 +1,13 @@
+.dash-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+}
+
+.greeting {
+  font-weight: bold;
+  padding: 5px;
+  margin: 5px;
+}
