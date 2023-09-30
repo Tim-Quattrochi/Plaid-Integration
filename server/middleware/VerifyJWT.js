@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { auth } = require("../config/db");
 const { ACCESS_TOKEN_SECRET } = require("../config/constants");
 
 const verifyJWT = async (req, res, next) => {
@@ -12,14 +13,8 @@ const verifyJWT = async (req, res, next) => {
   const accessToken = authHeader.split(" ")[1];
 
   try {
-    jwt.verify(accessToken, ACCESS_TOKEN_SECRET, (err, decoded) => {
-      if (err) {
-        console.log(err);
-        return res.status(403).json({ error: "Forbidden." });
-      }
-      //setting the user from decoded access token.
-      req.user = decoded.email; //Can change this to  name if you need.
-      req.id = decoded.id;
+    auth.verifyIdToken(accessToken).then((user) => {
+      req.user = user;
       next();
     });
   } catch (error) {
