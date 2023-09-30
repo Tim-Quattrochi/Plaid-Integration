@@ -4,6 +4,7 @@ import { authReducer, initialState } from "../context/AuthReducer";
 import { handleDispatch } from "../utils/authUtils";
 import { APP_NAME } from "../config/constants";
 import { useNavigate } from "react-router-dom";
+
 import {
   loginUser,
   logoutUser,
@@ -36,9 +37,10 @@ export const AuthProvider = ({ children }) => {
   const handleLogin = async (email, password) => {
     try {
       await loginUser(email, password, authDispatch);
+
       navigate("/dashboard");
     } catch (error) {
-      console.log(error);
+      throw new Error(error.message);
     }
   };
 
