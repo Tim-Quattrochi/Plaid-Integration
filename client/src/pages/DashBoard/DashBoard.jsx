@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import useAxiosPrivate from "../../hooks/useAxiosPrivate";
 import useAuthContext from "../../hooks/useAuthContext";
 import LoadingSpinner from "../../components/Loading/LoadingSpinner";
+import "./dashBoard.css";
 
 const DashBoard = () => {
   const [list, setList] = useState("");
@@ -9,6 +10,9 @@ const DashBoard = () => {
   const { authState } = useAuthContext();
   const [loading, setLoading] = useState(false);
 
+  const {
+    user: { email },
+  } = authState;
   /**
    * @description Right now this axios call is just a test
    * to test protected endpoints
@@ -33,12 +37,11 @@ const DashBoard = () => {
 
   if (loading) return <LoadingSpinner />;
   return (
-    <div>
+    <div className="dash-container">
       <h1>Dashboard</h1>
-      <span>IF you can see this list, you are authorized.</span>
-      <ul>
-        {list && list.map((item, i) => <li key={i}>{item}</li>)}
-      </ul>
+      <span className="greeting">Hello,{email}</span>
+
+      <span>{list} </span>
     </div>
   );
 };
