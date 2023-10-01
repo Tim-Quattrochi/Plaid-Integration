@@ -1,6 +1,6 @@
-# MERN Starter Template
+# Plaid Integration sandbox
 
-This template creates the boilerplate code for a full stack MERN app and helps developers start working on their projects more quickly.
+This project is using the MERN starter template that I created. I am working with Plaid integration and Google Firestore, Authentication. I started by removing references to Mongodb, mongoose. The template uses a refresh/access token strategy for authentication, and since Firebase Authentication offers this out of the box client side, I decided to use the client side Firestore SDK. .. read me to be continued.
 
 ### Table of Contents
 
