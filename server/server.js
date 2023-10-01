@@ -5,17 +5,14 @@ const morgan = require("morgan");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const { PORT, NODE_ENV, API_URL } = require("./config/constants");
-const connectDB = require("./config/db");
 const userRouter = require("./routes/auth.routes");
 const { logger } = require("./middleware/logger");
 const { AppError } = require("./middleware/AppError");
 const credentials = require("./middleware/credentials");
 const corsOptions = require("./config/corsOptions");
+const plaidRouter = require("./routes/plaid.routes");
 
 const app = express();
-
-//DB connection
-// connectDB(); //commented out until firestore is wired up.
 
 //Middlewares
 app.use(cors(corsOptions));
@@ -29,6 +26,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 //routes
 app.use(`${API_URL}/auth`, userRouter);
+app.use(`${API_URL}/plaid`, plaidRouter);
 
 //server static files in production
 if (NODE_ENV === "production") {
