@@ -1,9 +1,9 @@
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { authReducer, initialState } from "../context/AuthReducer";
 import { handleDispatch } from "../utils/authUtils";
-import { APP_NAME } from "../config/constants";
 import { useNavigate } from "react-router-dom";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 import {
   loginUser,
@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
     initialState
   );
   const [checking, setIsChecking] = useState(true); //checking if user is authenticated for private route
+  const isMounted = useRef(true);
   const navigate = useNavigate();
 
   const handleRegister = async (userDetails) => {
@@ -56,15 +57,31 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     handleDispatch(authDispatch, "SET_IS_SUBMITTING", true);
 
-    const authValue = JSON.parse(localStorage.getItem(`${APP_NAME}`));
-    if (authValue) {
-      handleDispatch(authDispatch, "LOGIN", authValue);
-    } else {
-      handleDispatch(authDispatch, "LOGOUT", null);
+    if (isMounted) {
+      const auth = getAuth();
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          const userPayload = {
+            accessToken: auth.currentUser.accessToken,
+            user: {
+              id: auth.currentUser.uid,
+              name: auth.currentUser.displayName,
+              email: auth.currentUser.email,
+            },
+          };
+          handleDispatch(authDispatch, "LOGIN", userPayload);
+        }
+        setIsChecking(false);
+      });
     }
+
     handleDispatch(authDispatch, "SET_IS_SUBMITTING", false);
-    setIsChecking(false);
-  }, [authDispatch]);
+
+    return () => {
+      isMounted.current = false;
+    };
+  }, [authDispatch, isMounted]);
 
   return (
     <AuthContext.Provider
