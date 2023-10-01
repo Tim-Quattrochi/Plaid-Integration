@@ -1,8 +1,13 @@
-// imports for any firestore modules here
-const { DB_URI } = require("./constants");
+const { initializeApp } = require("firebase-admin/app");
+const admin = require("firebase-admin");
 
-const connectDB = async () => {
-  //connection to firestore db.
-};
+const serviceAccount = require("./fsCreds.json");
 
-module.exports = connectDB;
+initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+const auth = admin.auth();
+const db = admin.firestore();
+
+module.exports = { db, auth };
