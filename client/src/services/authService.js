@@ -1,5 +1,13 @@
-import axios from "../hooks/useAxios";
-import { handleDispatch, saveToLocal } from "../utils/authUtils";
+import { handleDispatch } from "../utils/authUtils";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  getAuth,
+} from "firebase/auth";
+import { setDoc, doc, serverTimestamp } from "firebase/firestore";
+import { auth, firestore } from "../config/firebase";
 import { APP_NAME } from "../config/constants";
 
 /**
@@ -16,19 +24,36 @@ import { APP_NAME } from "../config/constants";
 const registerUser = async (userDetails, authDispatch) => {
   handleDispatch(authDispatch, "SET_IS_SUBMITTING", true);
 
+  const { email, confirmPassword, name } = userDetails;
   try {
-    await axios.post("/auth/register", userDetails);
+    const userCreds = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      confirmPassword
+    );
+
+    updateProfile(auth.currentUser, {
+      displayName: name,
+    });
+
+    //points to the google users uid.
+    const userId = userCreds.user.uid;
+
+    //user data to store in Cloud FireStore.
+    const userData = {
+      name: name,
+      email: email,
+      timestamp: serverTimestamp(),
+    };
+    //update the user collection in the firestore if it does not exist.
+    await setDoc(doc(firestore, "users", userId), userData);
   } catch (error) {
     handleDispatch(authDispatch, "SET_IS_SUBMITTING", false);
-    console.log(error);
-
-    if (error.response.data) {
-      handleDispatch(
-        authDispatch,
-        "SET_ERROR",
-        error.response.data.error
-      );
-      throw new Error(error.response.data.error);
+    //if there is an error from google, show the error.code which
+    //displays a more non-tech reason for the error.
+    if (error) {
+      handleDispatch(authDispatch, "SET_ERROR", error.code);
+      throw new Error(error.code);
     } else {
       throw error;
     }
@@ -50,31 +75,37 @@ const loginUser = async (userEmail, password, authDispatch) => {
   handleDispatch(authDispatch, "SET_IS_SUBMITTING", true);
   handleDispatch(authDispatch, "SET_ERROR", null); //clear any errors in state.
   try {
-    const response = await axios.post("/auth/login", {
-      email: userEmail,
-      password,
-    });
+    await signInWithEmailAndPassword(auth, userEmail, password).then(
+      (res) => {
+        const {
+          user: { accessToken, uid, email, displayName },
+        } = res;
+        const userInfo = { uid, email, displayName };
+        //if there is a user, save user info in state
+        if (res.user) {
+          handleDispatch(authDispatch, "LOGIN", {
+            user: userInfo,
+            accessToken,
+          });
 
-    const { _id, name, email, accessToken } = response.data;
-    const userInfo = { _id, name, email };
-    saveToLocal(userInfo, accessToken);
-
-    handleDispatch(authDispatch, "LOGIN", {
-      user: userInfo,
-      accessToken,
-    });
-    handleDispatch(authDispatch, "SET_IS_SUBMITTING", false);
+          handleDispatch(authDispatch, "SET_IS_SUBMITTING", false);
+        }
+      }
+    );
   } catch (error) {
-    console.log(error);
     handleDispatch(authDispatch, "SET_IS_SUBMITTING", false);
 
-    if (error.response || error.response.data) {
-      handleDispatch(
-        authDispatch,
-        "SET_ERROR",
-        error.response.data.error
-      );
-      throw new Error(error.response.data.error);
+    //turns the error message user friendly and readable.
+    let errorMsg;
+    if (error.code === "auth/invalid-login-credentials") {
+      errorMsg = "Invalid username or password.";
+    } else {
+      errorMsg = error;
+    }
+
+    if (error || error.code) {
+      handleDispatch(authDispatch, "SET_ERROR", errorMsg);
+      throw new Error(errorMsg);
     } else {
       throw error;
     }
@@ -89,12 +120,13 @@ const loginUser = async (userEmail, password, authDispatch) => {
 const logoutUser = async (authDispatch) => {
   handleDispatch(authDispatch, "SET_IS_SUBMITTING", true);
 
+  const authProv = getAuth();
   try {
-    await axios.post("/auth/logout");
-
-    localStorage.removeItem(`${APP_NAME}`);
-    handleDispatch(authDispatch, "LOGOUT", null);
-    handleDispatch(authDispatch, "SET_IS_SUBMITTING", false);
+    signOut(authProv).then(() => {
+      localStorage.removeItem(`${APP_NAME}`);
+      handleDispatch(authDispatch, "LOGOUT", null);
+      handleDispatch(authDispatch, "SET_IS_SUBMITTING", false);
+    });
   } catch (error) {
     handleDispatch(authDispatch, "SET_IS_SUBMITTING", false);
     if (error.response || error.response) {
