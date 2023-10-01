@@ -9,10 +9,9 @@ const {
 const VerifyJWT = require("../middleware/VerifyJWT");
 const validateReqBody = require("../middleware/validateReqBody");
 const rateLimiter = require("../middleware/rateLimiter");
-const verifyJWT = require("../middleware/VerifyJWT");
-
 const userRouter = express.Router();
 
+//these routes are currently not being used since firebase user auth is client side.
 userRouter.post(
   "/register",
   validateReqBody("email", "password", "confirmPassword", "name"),
@@ -20,7 +19,7 @@ userRouter.post(
 );
 userRouter.post(
   "/login",
-  // rateLimiter, commented out for testing
+  rateLimiter,
   validateReqBody("email", "password"),
   login
 );
