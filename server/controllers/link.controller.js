@@ -1,4 +1,3 @@
-// The first step is to create a new link_token by making a /link/token/create request and passing in the required configurations. This link_token is a short lived, one-time use token that authenticates your app with Plaid Link, our frontend module. Several of the environment variables you configured when launching the Quickstart, such as PLAID_PRODUCTS, are used as parameters for the link_token.
 const {
   Configuration,
   PlaidApi,
@@ -9,6 +8,7 @@ const {
   PLAID_CLIENT_ID,
   PLAID_SECRET,
 } = require("../config/constants");
+const { db } = require("../config/db");
 
 // Configuration for the Plaid client
 const config = new Configuration({
@@ -22,7 +22,6 @@ const config = new Configuration({
   },
 });
 
-//Instantiate the Plaid client with the configuration
 const client = new PlaidApi(config);
 
 const getPlaidLinkToken = async (req, res, next) => {
@@ -48,26 +47,55 @@ const getPlaidLinkToken = async (req, res, next) => {
 };
 
 const exchangePlaidToken = async (req, res, next) => {
-  // Exchanges the public token from Plaid Link for an access token
-
   const exchangeResponse = await client.itemPublicTokenExchange({
     public_token: req.body.public_token,
   });
 
-  // FOR DEMO PURPOSES ONLY
-  // Store access_token in DB instead of session storage
-  req.session.access_token = exchangeResponse.data.access_token;
-  res.json(true);
+  const userId = req.user.uid;
+  const userData = {
+    pLAccessToken: exchangeResponse.data.access_token,
+  };
+
+  try {
+    const userRef = db.collection("users").doc(userId);
+
+    await userRef.set(userData);
+    res.json(true);
+    console.log("data added to store");
+  } catch (error) {
+    console.error("Error adding user data: ", error);
+    next(error);
+  }
 };
 
 const getBalance = async (req, res, next) => {
-  const access_token = req.session.access_token;
-  const balanceResponse = await client.accountsBalanceGet({
-    access_token,
-  });
-  res.json({
-    Balance: balanceResponse.data,
-  });
+  const userId = req.user.uid;
+  const userRef = db.collection("users").doc(userId);
+  try {
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const pLAccessToken = userDoc.data().pLAccessToken;
+
+    if (!pLAccessToken) {
+      return res
+        .status(404)
+        .json({ error: "pLAccessToken not found for the user" });
+    }
+
+    const balanceResponse = await client.accountsBalanceGet({
+      access_token: pLAccessToken,
+    });
+
+    res.json({
+      Balance: balanceResponse.data,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
 module.exports = {
