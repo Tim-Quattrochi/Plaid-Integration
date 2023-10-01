@@ -11,7 +11,7 @@ const DashBoard = () => {
   const [loading, setLoading] = useState(false);
 
   const {
-    user: { email },
+    user: { name },
   } = authState;
   /**
    * @description Right now this axios call is just a test
@@ -39,7 +39,7 @@ const DashBoard = () => {
   return (
     <div className="dash-container">
       <h1>Dashboard</h1>
-      <span className="greeting">Hello,{email}</span>
+      <span className="greeting">Hello, {name}</span>
 
       <span>{list} </span>
     </div>
