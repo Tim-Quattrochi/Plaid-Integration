@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 import {
   VITE_AUTH_DOMAIN,
   VITE_FIRE_API_KEY,
@@ -26,4 +27,5 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-export { auth };
+const firestore = getFirestore();
+export { auth, app, firestore };
