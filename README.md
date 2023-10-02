@@ -1,6 +1,10 @@
 # Plaid Integration sandbox
 
-This project is using the MERN starter template that I created. I am working with Plaid integration and Google Firestore, Authentication. I started by removing references to Mongodb, mongoose. The template uses a refresh/access token strategy for authentication, and since Firebase Authentication offers this out of the box client side, I decided to use the client side Firestore SDK. .. read me to be continued.
+This project is using the MERN starter template that I created. I am working with Plaid integration and Google Firestore, Authentication. I started by removing references to Mongodb, mongoose. The template uses a refresh/access token strategy for authentication, and since Firebase Authentication offers this out of the box client side, I decided to use the client side Firestore SDK.
+
+Reading through the Plaid docs and getting familar with their /transactions/sync and /accounts/balance/get endpoints was a great learning experience. These endpoints open doors to countless opportunities for developing applications that offer valuable financial insights and services. Whether it's tracking expenses, analyzing spending patterns, or automating financial management, the possibilities are boundless.
+
+
 
 ### Table of Contents
 
@@ -42,24 +46,30 @@ For example:
 ```
  NODE_ENV=development
  PORT=3001
- DB_URI=YOUR_OWN_MONGO_DB_CONNECTION_STRING
  API_URL=/api
  JWT_EXPIRES_IN=1h
  ACCESS_EXPIRES_IN=4d
-ACCESS_TOKEN_SECRET=testinggg
+ ACCESS_TOKEN_SECRET=your_secret
  REFRESH_EXPIRES_IN=10d
- REFRESH_TOKEN_SECRET=YOUR_REFRESH_TOKEN_SECRET
- JWT_SECRET=YOUR_JWT_SECRET
- APP_NAME="WHATEVER_YOUR_APP_NAME_IS"
+ REFRESH_TOKEN_SECRET=your_secret
+ JWT_SECRET=your_secret
+ APP_NAME=your_app_name
+ PLAID_CLIENT_ID=
+ PLAID_SECRET=
+ PLAID_ENV=
 ```
 
 ### Client environment variables
 
 ---
-
 ```
-VITE_BASE_API="/api"
-VITE_APP_NAME="WHATEVER_YOUR_APP_NAME_IS"
+  VITE_FIRE_API_KEY=""
+  VITE_AUTH_DOMAIN=""
+  VITE_PROJECT_ID=""
+  VITE_STORAGE_BUCKET=""
+  VITE_MESSAGING_SENDER_ID=""
+  VITE_FIRE_APP_ID=""
+  VITE_FIRE_MEASURE_ID=""
 ```
 
 All Vite environment variables must start with `VITE_` unlike `Create-React-App`, which must start with `REACT_APP` I have set up a `constants.js` file in `client/src/client/config` that exports environment variables, for example `import.meta.env.VITE_BASE_API`. Notice how Vite used `import.meta.env` instead of `process.env`.
@@ -79,7 +89,7 @@ This will start your `client` on `http://localhost:5173/` and backend in develop
 ## Features
 
 - Login and Register
-- Authentication using refresh and access tokens
+- Authentication using Firebase
 - Rate Limiter to limit the rate an endpoint can be accessed.
 - Custom Error handling
 - Custom Logger to Log events and errors to your server
@@ -89,6 +99,9 @@ This will start your `client` on `http://localhost:5173/` and backend in develop
 ## Tech Stack
 
 ### **Front-end**
+- [plaid-link] - React hook and components for integrating Plaid Link. Plaid Link is the client-side component that your users will interact with in order to link their accounts to Plaid and allow you to access their accounts via the Plaid API.
+
+- [firebase] - Firebase provides the tools and infrastructure you need to develop, grow, and earn money from your app. This package supports web (browser), mobile-web, and server (Node.js) clients.
 
 - [Vite] - A build tool that aims to provide a faster and leaner development experience for modern web projects.
 
@@ -100,13 +113,15 @@ This will start your `client` on `http://localhost:5173/` and backend in develop
 
 ---
 
-- [Mongoose] - Mongoose is an object modeling tool for MongoDB and Node.js.
+- [plaid-node] - libraries and SDKs to easily integrate with the Plaid APIs.
+
+- [firebase-admin] - Firebase provides the tools and infrastructure you need to develop your app, grow your user base, and earn money. The Firebase Admin Node.js SDK enables access to Firebase services from privileged environments (such as servers or cloud) in Node.js.
 
 - [Node.js] - Cross-platform, open-source server environment that can run on Windows, Linux, Unix, macOS, and more. Node.js is a backend JavaScript runtime environment that runs on the V8 JavaScript Engine and executes JavaScript code outside a web browser.
 
-- [Express] - Express.js, or simply Express, is a backend web application framework for building RESTful APIs with Node.js
+- [Express] - Express.js, or simply Express, is a backend web application framework for building RESTful APIs with Node.js.
 
-- [MongoDB] - MongoDB Atlas is a fully managed cloud database service that allows you to quickly deploy, scale, and operate MongoDB databases in the cloud.
+
 
 ### **Testing**
 
@@ -160,7 +175,7 @@ I welcome contributions. Simply fork the repository and open a pull request and 
 [DaisyUI]: https://daisyui.com/
 [vite]: https://vitejs.dev/
 [mongoose]: https://mongoosejs.com/
-[mongodb]: https://www.mongodb.com/atlas/database
+[firebase-admin]: https://www.npmjs.com/package/firebase-admin
 [Vitest]: https://vitest.dev/
 [node.js]: http://nodejs.org
 [nginx]: https://www.nginx.com/
@@ -169,3 +184,6 @@ I welcome contributions. Simply fork the repository and open a pull request and 
 [concurrently]: https://www.npmjs.com/package/concurrently
 [http://54.90.137.205/]: http://54.90.137.205/
 [Workspaces]: https://docs.npmjs.com/cli/v8/using-npm/workspaces
+[firebase]: https://npmjs.com/package/firebase
+[plaid-link]: https://www.npmjs.com/package/react-plaid-link
+[plaid-node]:https://github.com/plaid/plaid-node
