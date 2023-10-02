@@ -120,9 +120,8 @@ const loginUser = async (userEmail, password, authDispatch) => {
 const logoutUser = async (authDispatch) => {
   handleDispatch(authDispatch, "SET_IS_SUBMITTING", true);
 
-  const authProv = getAuth();
   try {
-    signOut(authProv).then(() => {
+    signOut(auth).then(() => {
       localStorage.removeItem(`${APP_NAME}`);
       handleDispatch(authDispatch, "LOGOUT", null);
       handleDispatch(authDispatch, "SET_IS_SUBMITTING", false);
