@@ -1,28 +1,10 @@
-const {
-  Configuration,
-  PlaidApi,
-  PlaidEnvironments,
-} = require("plaid");
-const {
-  PLAID_ENV,
-  PLAID_CLIENT_ID,
-  PLAID_SECRET,
-} = require("../config/constants");
+const { PlaidApi } = require("plaid");
+
 const { db } = require("../config/db");
+const syncTransactions = require("../services/syncTransactions");
+const plaidConfig = require("../config/plaidConfig");
 
-// Configuration for the Plaid client
-const config = new Configuration({
-  basePath: PlaidEnvironments[PLAID_ENV],
-  baseOptions: {
-    headers: {
-      "PLAID-CLIENT-ID": PLAID_CLIENT_ID,
-      "PLAID-SECRET": PLAID_SECRET,
-      "Plaid-Version": "2020-09-14",
-    },
-  },
-});
-
-const client = new PlaidApi(config);
+const client = new PlaidApi(plaidConfig);
 
 const getPlaidLinkToken = async (req, res, next) => {
   const clientUserId = req.user.uid;
@@ -32,7 +14,7 @@ const getPlaidLinkToken = async (req, res, next) => {
       client_user_id: clientUserId,
     },
     client_name: "Plaid Integation",
-    products: ["auth"],
+    products: ["transactions"],
     language: "en",
     country_codes: ["US"],
   };
@@ -98,8 +80,43 @@ const getBalance = async (req, res, next) => {
   }
 };
 
+const getTransactions = async (req, res, next) => {
+  const userId = req.user.uid;
+  const { itemId } = req.body;
+
+  const userRef = db.collection("users").doc(userId);
+  try {
+    const userDoc = await userRef.get();
+
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const pLAccessToken = userDoc.data().pLAccessToken;
+
+    if (!pLAccessToken) {
+      return res
+        .status(404)
+        .json({ error: "token not found for the user" });
+    }
+
+    await syncTransactions(
+      userId,
+      pLAccessToken,
+      client,
+      db,
+      res,
+      itemId
+    );
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
 module.exports = {
   getPlaidLinkToken,
   exchangePlaidToken,
   getBalance,
+  getTransactions,
 };
