@@ -5,6 +5,7 @@ const {
   getPlaidLinkToken,
   exchangePlaidToken,
   getBalance,
+  getTransactions,
 } = require("../controllers/link.controller");
 
 const plaidRouter = express.Router();
@@ -31,5 +32,12 @@ plaidRouter.post(
  * @{url-endpoint} api/plaid/balance
  */
 plaidRouter.get("/balance", VerifyJWT, getBalance);
+
+/**
+ * @method {get}
+ * @protected
+ * @{url-endpoint} api/plaid/transactions
+ */
+plaidRouter.post("/transactions", VerifyJWT, getTransactions);
 
 module.exports = plaidRouter;
