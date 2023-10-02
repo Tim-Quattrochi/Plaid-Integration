@@ -11,6 +11,8 @@ const DashBoard = () => {
   const [loading, setLoading] = useState(false);
   const [token, setToken] = useState(null);
   const [data, setData] = useState(null);
+  const [transactions, setTransactions] = useState(null);
+  const [itemId, setItemId] = useState(null);
 
   const {
     user: { name },
@@ -22,6 +24,7 @@ const DashBoard = () => {
       public_token: publicToken,
     });
     await getBalance();
+    await getTransactions();
   }, []);
 
   // Creates a Link token
@@ -47,9 +50,25 @@ const DashBoard = () => {
     const response = await axiosPrivate.get("/plaid/balance", {});
 
     const { data } = response;
+    const { Balance } = data;
+
+    setItemId(Balance.item.item_id);
+
     setData(data);
     setLoading(false);
   }, [setData, setLoading]);
+
+  const getTransactions = async () => {
+    setLoading(true);
+    const response = await axiosPrivate.post("/plaid/transactions", {
+      itemId: itemId,
+    });
+
+    const { data } = response;
+
+    setTransactions(data.transactions);
+    setLoading(false);
+  };
 
   let isOauth = false;
 
@@ -93,6 +112,19 @@ const DashBoard = () => {
               <code>{JSON.stringify(entry[1], null, 2)}</code>
             </pre>
           ))}
+      </div>
+      <div>
+        <h2>Transaction List</h2>
+        <ul>
+          {transactions &&
+            transactions.map((transaction) => (
+              <li key={transaction.transactionId}>
+                <p>Merchant: {transaction.merchant}</p>
+                <p>Date: {transaction.date}</p>
+                <p>Amount: {transaction.amount}</p>
+              </li>
+            ))}
+        </ul>
       </div>
     </div>
   );
